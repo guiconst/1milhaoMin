@@ -12,6 +12,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ── Servir o frontend estático (public/) diretamente pelo Express ──
+// Isso evita depender da detecção automática de "static site" da Vercel,
+// que pode falhar quando o projeto é identificado como Framework "Node.js".
+const path = require('path');
+app.use(express.static(path.resolve(__dirname, '..', 'public')));
+
 // ── Supabase Client ──
 const supabase = createClient(
     process.env.SUPABASE_URL,
@@ -514,5 +520,10 @@ app.get('/api/classes', async (req, res) => {
 });
 
 
+
+// ── Fallback: qualquer rota que não seja /api/* recebe o frontend (SPA) ──
+app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.resolve(__dirname, '..', 'public', 'index.html'));
+});
 
 module.exports = app;
